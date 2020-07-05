@@ -24,7 +24,9 @@
 
 %% --------------------------------------------------------------------
 
--export([ping/0
+-export([ping/0,
+	 log_get/1,
+	 log_get/2
 	]).
 
 -export([start/0,
@@ -47,10 +49,12 @@
 start()-> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 stop()-> gen_server:call(?MODULE, {stop},infinity).
 
-
-
 %%-----------------------------------------------------------------------
+log_get(Type)->
+    gen_server:call(?MODULE, {log_get,Type},infinity).
 
+log_get(Node,Type)->
+    gen_server:call(?MODULE, {log_get,Node,Type},infinity).
 
 -spec(ping()->{pong,node(),module()}).
 ping()->
@@ -93,6 +97,13 @@ init([]) ->
 
 handle_call({ping}, _From, State) ->
      Reply={pong,node(),?MODULE},
+    {reply, Reply, State};
+
+handle_call({log_get,Type}, _From, State) ->
+     Reply=rpc:call(node(),oam,log_get,[Type]),
+    {reply, Reply, State};
+handle_call({log_get,Node,Type}, _From, State) ->
+     Reply=rpc:call(Node,log_service,get,[Type]),
     {reply, Reply, State};
 
 

@@ -17,10 +17,14 @@
 %% External exports
 
 
--export([
+-export([log_get/1
 	]).
 
 
 %% ====================================================================
 %% External functions
 %% ====================================================================
+log_get(Type)->
+    LogServices=dns_service:get("log_service"),
+    [{Node,rpc:call(Node,log_service,get,[Type])}||{"log_service",Node}<-LogServices].
+    
