@@ -10,7 +10,7 @@
 %% Include files
 %% --------------------------------------------------------------------
 -include_lib("eunit/include/eunit.hrl").
--include("log.hrl").
+-include("syslog.hrl").
 %% --------------------------------------------------------------------
 -export([start/0]).
 
@@ -38,35 +38,37 @@ start()->
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% -------------------------------------------------------------------
-%-define(LOG_INFO(Type,Msg),log_service:msg({Type,[node(),?MODULE,?FILE,?LINE,date(),time(),Msg]})).
-
-
 send_msg()->
-    log_service:msg({error,[node(),?MODULE,?FILE,?LINE,{2020,12,25},{15,00,00},'error 1']}),
- %   log_service:msg({error,[node(),?MODULE,?FILE,?LINE,{2019,12,24},{15,00,00},'error 2']}),
- %   log_service:msg({error,[node(),?MODULE,?FILE,?LINE,{2020,12,24},{15,00,00},'error 3']}),
- %   log_service:msg({event,[node(),?MODULE,?FILE,?LINE,{2019,12,24},{14,59,59},'event 1']}), 
+  %  log_service:msg({error,[node(),?MODULE,?FILE,?LINE,date(),time(),'error 1']}),
+    log_service:msg(?LOG_INFO(error,'error 1')),
+    log_service:msg(?LOG_INFO(error,'error 2')),
+    log_service:msg(?LOG_INFO(event,'event 1')),
+    log_service:msg(?LOG_INFO(event,'event 2')),
+%    log_service:msg({error,[node(),?MODULE,?FILE,?LINE,date(),time(),'error 2']}),  
+%    log_service:msg({event,[node(),?MODULE,?FILE,?LINE,date(),time(),'event 1']}),
+%    log_service:msg({event,[node(),?MODULE,?FILE,?LINE,date(),time(),'event 2']}),  
     ok.    
 
 all()->
-    glurk=dns_service:get("log_service"),
     Node=node(),
-    ?assertMatch({ok,[{in,{'$gen_cast',{msg,{error,[Node,?MODULE,?FILE,_,{2020,12,25},{15,00,00},'error 1']}}}},
+    ?assertMatch({ok,[{in,{'$gen_cast',{msg,{error,[Node,?MODULE,?FILE,_,_,_,'error 1']}}}},
+		      {noreply,{state}},
+		      {in,{'$gen_cast',{msg,{error,[Node,?MODULE,?FILE,_,_,_,'error 2']}}}},
+		      {noreply,{state}},
+		      {in,{'$gen_cast',{msg,{event,[Node,?MODULE,?FILE,_,_,_,'event 1']}}}},
+		      {noreply,{state}},
+		      {in,{'$gen_cast',{msg,{event,[Node,?MODULE,?FILE,_,_,_,'event 2']}}}},
 		      {noreply,{state}}
 		     ]},log_service:get(all)),
-
-    ?assertMatch({ok,[{in,{'$gen_cast',{msg,{error,[Node,?MODULE,?FILE,_,_,_,'error 1']}}}},
-		      {noreply,{state}}
-		     ]},oam_service:log_get(all)),
     ok.
 
 
 error()->
- %   ?assertMatch([{error,[log_test@asus,log_test,"test_src/log_test.erl",Line1,Date_1,_Time1,'error 1']},
-%		  {error,[log_test@asus,log_test,"test_src/log_test.erl",Line2,Date2,_Time2,'error 2']}],log_service:get(error)),
+    ?assertMatch([{error,[log_test@asus,log_test,"test_src/log_test.erl",Line1,Date_1,_Time1,'error 1']},
+		  {error,[log_test@asus,log_test,"test_src/log_test.erl",Line2,Date2,_Time2,'error 2']}],log_service:get(error)),
     ok.
 
 event()->
- %   ?assertMatch([{event,[log_test@asus,log_test,"test_src/log_test.erl",Line1,Date_1,_Time1,'event 1']},
-%		  {event,[log_test@asus,log_test,"test_src/log_test.erl",Line2,Date2,_Time2,'event 2']}],log_service:get(event)),
+    ?assertMatch([{event,[log_test@asus,log_test,"test_src/log_test.erl",Line1,Date_1,_Time1,'event 1']},
+		  {event,[log_test@asus,log_test,"test_src/log_test.erl",Line2,Date2,_Time2,'event 2']}],log_service:get(event)),
     ok.

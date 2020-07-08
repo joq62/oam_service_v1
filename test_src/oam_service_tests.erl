@@ -37,7 +37,7 @@ cases_test()->
     
     
     ?debugMsg("log test "),
-    ?assertEqual(ok,log_test:start()),
+    ?assertEqual(ok,oam_test:start()),
 
 
     ?debugMsg("Start stop_test_system:start"),
@@ -52,11 +52,14 @@ cases_test()->
 %% Returns: non
 %% --------------------------------------------------------------------
 setup()->
+    ?assertEqual(ok,application:start(dns_service)),
     ?assertEqual(ok,application:start(log_service)),
     ?assertEqual(ok,sys:log(log_service,true)),
+    ?assertEqual(ok,application:start(oam_service)),
     ok.
 
 cleanup()->
+    application:stop(oam_service),
     application:stop(log_service),
     init:stop().
 
